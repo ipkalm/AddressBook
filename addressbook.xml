@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="addressbook" default="all">
+  
+  
+  <property file="addressbook.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.tox/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.ear"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.swc"/>
+    <include name="*.ane"/>
+    <include name="*.egg"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
+  <path id="jdk.classpath.1.8">
+    <fileset dir="${jdk.home.1.8}">
+      <include name="jre/lib/rt.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/charsets.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
+      <include name="jre/lib/jsse.jar"/>
+      <include name="jre/lib/resources.jar"/>
+      <include name="jre/lib/deploy.jar"/>
+      <include name="jre/lib/jfr.jar"/>
+      <include name="jre/lib/jce.jar"/>
+      <include name="jre/lib/jfxswt.jar"/>
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/nashorn.jar"/>
+      <include name="jre/lib/ext/sunjce_provider.jar"/>
+      <include name="jre/lib/ext/jfxrt.jar"/>
+      <include name="jre/lib/ext/sunec.jar"/>
+      <include name="jre/lib/ext/cldrdata.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+      <include name="jre/lib/ext/zipfs.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/module_addressbook.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.addressbook, clean.artifact.addressbook" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.addressbook" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.addressbook" value="${basedir}/out/artifacts/AddressBook"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="artifact.temp.output.AddressBook" value="${artifacts.temp.dir}/AddressBook.jar"/>
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="${jdk.home.1.8}/lib/ant-javafx.jar"/>
+  </target>
+  
+  <target name="clean.artifact.addressbook" description="clean AddressBook artifact output">
+    <delete dir="${artifact.output.addressbook}"/>
+  </target>
+  
+  <target name="artifact.addressbook" depends="init.artifacts, compile.module.addressbook" description="Build &#39;AddressBook&#39; artifact" xmlns:fx="javafx:com.sun.javafx.tools.ant">
+    <mkdir dir="${artifact.output.addressbook}"/>
+    <copy todir="${artifact.temp.output.AddressBook}">
+      <fileset dir="${addressbook.output.dir}"/>
+    </copy>
+    <fx:fileset id="all_but_AddressBook" dir="${artifact.temp.output.AddressBook}" includes="**/*.jar">
+      <exclude name="AddressBook.jar"/>
+    </fx:fileset>
+    <fx:fileset id="all_AddressBook" dir="${artifact.temp.output.AddressBook}" includes="**/*.jar"/>
+    <fx:application id="AddressBook_id" name="AddressBook" mainClass="test.MainApp"/>
+    <fx:csstobin outdir="${artifact.temp.output.AddressBook}">
+      <fileset dir="${artifact.temp.output.AddressBook}" includes="**/*.css"/>
+    </fx:csstobin>
+    <fx:jar destfile="${artifact.temp.output.AddressBook}/AddressBook.jar">
+      <fx:application refid="AddressBook_id"/>
+      <fileset dir="${artifact.temp.output.AddressBook}" excludes="**/*.jar"/>
+      <fx:resources>
+        <fx:fileset refid="all_but_AddressBook"/>
+      </fx:resources>
+      <manifest/>
+    </fx:jar>
+    <fx:deploy width="600" height="400" updatemode="background" outdir="${artifact.temp.output.AddressBook}/deploy" outfile="AddressBook">
+      <fx:application refid="AddressBook_id"/>
+      <fx:info title="AddressBook" vendor="StonedAstronaut"/>
+      <fx:resources>
+        <fx:fileset refid="all_AddressBook"/>
+      </fx:resources>
+    </fx:deploy>
+    <copy todir="${artifact.output.addressbook}">
+      <fileset dir="${artifact.temp.output.AddressBook}/deploy"/>
+    </copy>
+    <delete includeemptydirs="true">
+      <fileset dir="${artifact.temp.output.AddressBook}"/>
+    </delete>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.addressbook" description="Build all artifacts">
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>
